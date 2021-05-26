@@ -73,6 +73,11 @@ app.post('/getUserDetails', function(req, res) {
 	getUserDetails(req, res);
 });
 
+app.post('/searchMovieByTitle', function(req, res) {
+	console.log('searchMovieByTitle');
+	searchMovieByTitle(req, res);
+});
+
 app.post('/fetchOnScrollUpMovies', function(req, res) {
 	console.log('fetchOnScrollUpMovies');
 	fetchOnScrollUpMovies(req, res);
@@ -107,6 +112,24 @@ app.post('/addRatingAndSeenFlag', function(req, res) {
 	console.log('addRatingAndSeenFlag');
 	addRatingAndSeenFlag(req, res);
 });
+
+const searchMovieByTitle = (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
+	console.log(JSON.parse(JSON.stringify(req.body)));
+	const title = obj.title;
+	Movie.find({ title: { $regex: title, $options: 'i' } })
+		.then((result) => {
+			res.send(JSON.stringify(result));
+			res.end();
+			return;
+		})
+		.catch((err) => {
+			console.error(`searchMovieByTitle # Failed to fetch data from Movies by name: ${err}`);
+			res.send(JSON.stringify(null));
+			return;
+		});
+	// db.users.find({"name": /m/})
+};
 
 const fetchOnScrollUpMovies = (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
@@ -159,40 +182,82 @@ const fetchOnScrollUpMovies = (req, res) => {
 
 const fetchOnScrollDownMovies = (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
-	console.log(JSON.parse(JSON.stringify(req.body)));
-	const objId = obj.id;
+	console.log('fetchOnScrollDownMovies', JSON.parse(JSON.stringify(req.body)));
+	const objId = obj.id; // this is ObjectId _id
+	const category = obj.category;
 	if (obj.id === '0') {
-		Movie.find({})
-			.sort({
-				_id: 1
-			})
-			.limit(8)
-			.then((result) => {
-				res.send(JSON.stringify(result));
-				res.end();
-				return;
-			})
-			.catch((err) => {
-				console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
-				res.send(JSON.stringify(null));
-				return;
-			});
+		console.log('1');
+		if (category !== 'all') {
+			Movie.find({})
+				.sort({
+					_id: 1
+				})
+				.limit(8)
+				.then((result) => {
+					res.send(JSON.stringify(result));
+					res.end();
+					return;
+				})
+				.catch((err) => {
+					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
+					res.send(JSON.stringify(null));
+					return;
+				});
+		} else {
+			console.log('2');
+			Movie.find({ 'genres.name': { $in: [ 'Drama', 'History' ] } })
+				.sort({
+					_id: 1
+				})
+				.limit(8)
+				.then((result) => {
+					res.send(JSON.stringify(result));
+					res.end();
+					return;
+				})
+				.catch((err) => {
+					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
+					res.send(JSON.stringify(null));
+					return;
+				});
+		}
 	} else {
-		Movie.find({ _id: { $gt: ObjectId(objId) } })
-			.sort({
-				_id: 1
-			})
-			.limit(8)
-			.then((result) => {
-				res.send(JSON.stringify(result));
-				res.end();
-				return;
-			})
-			.catch((err) => {
-				console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
-				res.send(JSON.stringify(null));
-				return;
-			});
+		if (category !== 'all') {
+			console.log('3');
+			Movie.find({ 'genres.name': { $in: [ 'Drama', 'History' ] } })
+				.sort({
+					_id: 1
+				})
+				.limit(8)
+				.then((result) => {
+					console.log('result: ', JSON.stringify(result[7].genres));
+					res.send(JSON.stringify(result));
+					res.end();
+					return;
+				})
+				.catch((err) => {
+					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
+					res.send(JSON.stringify(null));
+					return;
+				});
+		} else {
+			console.log('4');
+			Movie.find({ _id: { $gt: ObjectId(objId) } })
+				.sort({
+					_id: 1
+				})
+				.limit(8)
+				.then((result) => {
+					res.send(JSON.stringify(result));
+					res.end();
+					return;
+				})
+				.catch((err) => {
+					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
+					res.send(JSON.stringify(null));
+					return;
+				});
+		}
 	}
 };
 
