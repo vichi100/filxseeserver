@@ -14,6 +14,9 @@ var ObjectId = require('mongodb').ObjectID;
 const { MovieDb } = require('moviedb-promise');
 const moviedb = new MovieDb('8c643e62fa2e9201b30ef1f251603347');
 
+// 2 Factor API
+const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
+
 // The omdb
 const omdb = new (require('omdbapi'))('b6aff899');
 
@@ -73,6 +76,16 @@ app.post('/getUserDetails', function(req, res) {
 	getUserDetails(req, res);
 });
 
+app.post('/generateOTP', function(req, res) {
+	console.log('generateOTP');
+	generateOTP(req, res);
+});
+
+app.post('/getHomeScreenData', function(req, res) {
+	console.log('getHomeScreenData');
+	getHomeScreenData(req, res);
+});
+
 app.post('/searchMovieByTitle', function(req, res) {
 	console.log('searchMovieByTitle');
 	searchMovieByTitle(req, res);
@@ -98,10 +111,76 @@ app.post('/saveNewContact', function(req, res) {
 	saveNewContact(req, res);
 });
 
-app.post('/getHomeScreenData', function(req, res) {
-	console.log('getHomeScreenData');
-	getHomeScreenData(req, res);
-});
+const generateOTP = (req, res) => {
+	console.log(JSON.stringify(req.body));
+	const obj = JSON.parse(JSON.stringify(req.body));
+	const mobile = obj.mobile;
+	const OTP = obj.otp;
+
+	axios
+		.get(`https://2factor.in/API/V1/${OTP_API}/SMS/${mobile}/${OTP}`)
+		.then((response) => {
+			console.log(response);
+			res.send(JSON.stringify('success'));
+			res.end();
+			console.log('response sent');
+		})
+		.catch((err) => {
+			console.error(`getHomeScreenData# Failed to fetch documents : ${err}`);
+			res.send(JSON.stringify('fail'));
+			res.end();
+			return;
+		});
+};
+
+const getHomeScreenData = (req, res) => {
+	const restaurantObj = JSON.parse(JSON.stringify(req.body));
+	console.log(JSON.stringify(req.body));
+	// media_type: 'all'|'movie'|'tv'|'person'
+	// time_window: 'day'|'week'
+	// const trendingToday = TrendingToday.find({}).exec();
+	// const trendingThisWeek = TrendingThisWeek.find({}).exec();
+
+	// START: THESE TWO ARE FOR TESTING REMOVE BEFORE PRODUCTION
+	const friendList = Movie.find({}).exec();
+	const trendingToday = Movie.find({}).exec();
+	const trendingThisWeek = Movie.find({}).exec();
+	const masterCut = Movie.find({}).exec();
+	//END
+	Promise.all([ friendList, trendingToday, trendingThisWeek, masterCut ])
+		.then(([ res1, res2, res3, res4 ]) => {
+			// console.log('Results trendingCurrentWeek: ', res2.results);
+			const homeScreenData = [
+				{
+					title: 'What Your Friends Watching',
+					data: res1
+				},
+				{
+					title: 'Trending Today',
+					data: res2
+				},
+				{
+					title: 'Popular This Week',
+					data: res3
+				},
+
+				{
+					title: 'Master Piece',
+					data: res4
+				}
+			];
+
+			res.send(JSON.stringify(homeScreenData));
+			res.end();
+			return;
+		})
+		.catch((err) => {
+			console.error(`getHomeScreenData# Failed to fetch documents : ${err}`);
+			res.send(JSON.stringify([]));
+			res.end();
+			return;
+		});
+};
 
 app.post('/getMovieDetailData', function(req, res) {
 	console.log('getMovieDetailData');
@@ -126,6 +205,7 @@ const searchMovieByTitle = (req, res) => {
 		.catch((err) => {
 			console.error(`searchMovieByTitle # Failed to fetch data from Movies by name: ${err}`);
 			res.send(JSON.stringify(null));
+			res.end();
 			return;
 		});
 	// db.users.find({"name": /m/})
@@ -149,6 +229,7 @@ const fetchOnScrollUpMovies = (req, res) => {
 			.catch((err) => {
 				console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
 				res.send(JSON.stringify(null));
+				res.end();
 				return;
 			});
 	} else {
@@ -175,6 +256,7 @@ const fetchOnScrollUpMovies = (req, res) => {
 			.catch((err) => {
 				console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
 				res.send(JSON.stringify(null));
+				res.end();
 				return;
 			});
 	}
@@ -201,6 +283,7 @@ const fetchOnScrollDownMovies = (req, res) => {
 				.catch((err) => {
 					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
 					res.send(JSON.stringify(null));
+					res.end();
 					return;
 				});
 		} else {
@@ -218,6 +301,7 @@ const fetchOnScrollDownMovies = (req, res) => {
 				.catch((err) => {
 					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
 					res.send(JSON.stringify(null));
+					res.end();
 					return;
 				});
 		}
@@ -230,7 +314,7 @@ const fetchOnScrollDownMovies = (req, res) => {
 				})
 				.limit(8)
 				.then((result) => {
-					console.log('result: ', JSON.stringify(result[7].genres));
+					// console.log('result: ', JSON.stringify(result[7].genres));
 					res.send(JSON.stringify(result));
 					res.end();
 					return;
@@ -238,6 +322,7 @@ const fetchOnScrollDownMovies = (req, res) => {
 				.catch((err) => {
 					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
 					res.send(JSON.stringify(null));
+					res.end();
 					return;
 				});
 		} else {
@@ -255,6 +340,7 @@ const fetchOnScrollDownMovies = (req, res) => {
 				.catch((err) => {
 					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
 					res.send(JSON.stringify(null));
+					res.end();
 					return;
 				});
 		}
@@ -280,6 +366,7 @@ const getFriendsData = (req, res) => {
 		.catch((err) => {
 			console.error(`getFriendsData # Failed to fetch data from UserContacts: ${err}`);
 			res.send(JSON.stringify('fail'));
+			res.end();
 			return;
 		});
 };
@@ -312,6 +399,7 @@ const saveNewContact = (req, res) => {
 				.catch((err) => {
 					console.error(`saveNewContact1 # Failed to insert documents in UserContacts: ${err}`);
 					res.send(JSON.stringify('fail'));
+					res.end();
 					return;
 				});
 		} else {
@@ -330,6 +418,7 @@ const saveNewContact = (req, res) => {
 				.catch((err) => {
 					console.error(`saveNewContact2 # Failed to insert documents in UserContacts: ${err}`);
 					res.send(JSON.stringify('fail'));
+					res.end();
 					return;
 				});
 		}
@@ -370,6 +459,7 @@ const addRatingAndSeenFlag = (req, res) => {
 		.catch((err) => {
 			console.error(`addRatingAndSeenFlag# Failed to update documents : ${err}`);
 			res.send(JSON.stringify('fail'));
+			res.end();
 			return;
 		});
 };
@@ -409,12 +499,14 @@ const getUserDetails = (req, res) => {
 							.catch((err) => {
 								console.error(`getUserDetails# Failed to insert documents in all_users: ${err}`);
 								res.send(JSON.stringify(null));
+								res.end();
 								return;
 							});
 					})
 					.catch((err) => {
 						console.error(`getUserDetails# Failed to insert documents : ${err}`);
 						res.send(JSON.stringify(null));
+						res.end();
 						return;
 					});
 			}
@@ -422,11 +514,12 @@ const getUserDetails = (req, res) => {
 		.catch((err) => {
 			console.error(`getUserDetails# Failed to fetch documents : ${err}`);
 			res.send(JSON.stringify(null));
+			res.end();
 			return;
 		});
 };
 
-const getHomeScreenData = (req, res) => {
+const getHomeScreenDataX = (req, res) => {
 	const restaurantObj = JSON.parse(JSON.stringify(req.body));
 	console.log(JSON.stringify(req.body));
 	// media_type: 'all'|'movie'|'tv'|'person'
@@ -452,6 +545,7 @@ const getHomeScreenData = (req, res) => {
 		.catch((err) => {
 			console.error(`getHomeScreenData# Failed to fetch documents : ${err}`);
 			res.send(JSON.stringify([]));
+			res.end();
 			return;
 		});
 };
@@ -470,6 +564,7 @@ const getMovieDetailData = (req, res) => {
 		.catch((err) => {
 			console.error(`getMovieDetailData# Failed to fetch documents : ${err}`);
 			res.send(JSON.stringify([]));
+			res.end();
 			return;
 		});
 };
