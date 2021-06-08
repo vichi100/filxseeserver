@@ -33,91 +33,123 @@ const genresX = {
 	'10764': 'Reality',
 	'10767': 'Talk Show'
 };
-
+// mongodb+srv://vichi:<password>@cluster0.emt5x.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
 mongoose
-	.connect('mongodb+srv://vichi:vichi123@cluster0.3gcit.mongodb.net/flixsee?retryWrites=true&w=majority')
+	.connect('mongodb+srv://vichi:vichi123@cluster0.emt5x.mongodb.net/flicksick_india?retryWrites=true&w=majority')
 	.then(() => {
 		console.log('MongoDB connected...server listening at 3000');
 	})
 	.catch((err) => console.log(err));
 
-var options = {
-	method: 'GET',
-	url: 'https://streaming-availability.p.rapidapi.com/search/basic',
-	params: {
-		country: 'in',
-		service: 'netflix',
-		type: 'movie',
-		page: '6',
-		language: 'en'
-	},
-	headers: {
-		'x-rapidapi-key': '03fe41fbaamsh36e3caed36bbea5p18c791jsndbf3b6fe4482',
-		'x-rapidapi-host': 'streaming-availability.p.rapidapi.com'
-	}
+const sleep = (milliseconds) => {
+	const date = Date.now();
+	let currentDate = null;
+	do {
+		currentDate = Date.now();
+	} while (currentDate - date < milliseconds);
 };
 
-axios
-	.request(options)
-	.then(function(response) {
-		console.log(response.data);
-		response.data.results.map((item) => {
-			const genresArray = item.genres;
-			const genresObjArray = [];
-			genresArray.map((item) => {
-				const nameTemp = genresX[item.toString()];
-				const genresObj = {
-					id: item,
-					name: nameTemp
-				};
-				genresObjArray.push(genresObj);
-			});
-
-			console.log('genresObjArray: ', genresObjArray);
-
-			obj = {
-				fs_id: nanoid().toString(),
-				tmdb_id: item.tmdbID,
-				tmdb_rating: item.tmdbRating,
-				tmdb_vote_count: null,
-				adult: false,
-				backdrop_path: item.backdropPath,
-				belongs_to_collection: null,
-				budget: null,
-				genres: genresObjArray,
-				homepage: null,
-				imdb_id: item.imdbID,
-				imdb_rating: item.imdbRating,
-				imdb_vote_count: item.imdbVoteCount,
-				rotten_tomatoes_rating: null,
-				streaming_info: item.streamingInfo,
-				original_language: item.originalLanguage,
-				original_title: item.originalTitle,
-				overview: item.overview,
-				poster_path: item.posterPath,
-				release_date: item.year,
-				revenue: null,
-				runtime: item.runtime,
-				spoken_languages: [ item.originalLanguage ],
-				status: null,
-				tagline: item.tagline,
-				title: item.title,
-				trailer: item.video
-			};
-			Movie.collection
-				.insertOne(obj)
-				.then((result) => {
-					console.log(result);
-				})
-				.catch((err) => {
-					console.error(`getUserDetails# Failed to insert documents : ${err}`);
+const insertData = (page) => {
+	console.log('insertData page: ', page);
+	var options = {
+		method: 'GET',
+		url: 'https://streaming-availability.p.rapidapi.com/search/ultra',
+		params: {
+			country: 'in',
+			services: 'prime,netflix',
+			type: 'movie',
+			order_by: 'year',
+			page: page,
+			desc: 'true'
+		},
+		headers: {
+			'x-rapidapi-key': '03fe41fbaamsh36e3caed36bbea5p18c791jsndbf3b6fe4482',
+			'x-rapidapi-host': 'streaming-availability.p.rapidapi.com'
+		}
+	};
+	sleep(1000);
+	axios
+		.request(options)
+		.then(function(response) {
+			console.log(response.data);
+			sleep(1000);
+			response.data.results.map((item) => {
+				const genresArray = item.genres;
+				const genresObjArray = [];
+				genresArray.map((item) => {
+					const nameTemp = genresX[item.toString()];
+					const genresObj = {
+						id: item,
+						name: nameTemp
+					};
+					genresObjArray.push(genresObj);
 				});
-		});
-	})
-	.catch(function(error) {
-		console.error(error);
-	});
 
+				console.log('genresObjArray: ', genresObjArray);
+
+				obj = {
+					fs_id: nanoid().toString(),
+					tmdb_id: item.tmdbID,
+					tmdb_rating: item.tmdbRating,
+					tmdb_vote_count: null,
+					age: item.age,
+					adult: false,
+					backdrop_path: item.backdropPath,
+					backdrop_urls: item.backdropURLs,
+					belongs_to_collection: null,
+					budget: null,
+					genres: genresObjArray,
+					homepage: null,
+					imdb_id: item.imdbID,
+					imdb_rating: item.imdbRating,
+					imdb_vote_count: item.imdbVoteCount,
+					rotten_tomatoes_rating: null,
+					streaming_info: item.streamingInfo,
+					original_language: item.originalLanguage,
+					original_title: item.originalTitle,
+					overview: item.overview,
+					poster_urls: item.posterURLs,
+					poster_path: item.posterPath,
+					release_date: item.year,
+					revenue: null,
+					runtime: item.runtime,
+					spoken_languages: [ item.originalLanguage ],
+					status: null,
+					tagline: item.tagline,
+					title: item.title,
+					trailer: item.video,
+					cast: item.cast,
+					category: null, // like rom-com, sitcom etc
+					media_type: 'movie', // movie, series ################# CHANGE THIS TO SERIES WHEN TYPE IS SERIES ########
+					fs_rating: {
+						loved_it: 0,
+						dumb_but_entertaining: 0,
+						just_time_pass: 0,
+						worthless: 0,
+						total_votes: 0
+					}
+				};
+				Movie.collection
+					.insertOne(obj)
+					.then((result) => {
+						console.log(result);
+					})
+					.catch((err) => {
+						console.error(`getUserDetails# Failed to insert documents : ${err}`);
+					});
+			});
+		})
+		.catch(function(error) {
+			console.error(error);
+		});
+};
+
+sleep(10000);
+for (i = 1; i < 233; i++) {
+	insertData(i);
+	console.log('page: ', i);
+	sleep(1000);
+}
 // https://www.hotstar.com/in/movies/20000%20Leagues%20Under%20the%20Sea/4SAB7qEx02M1
 // https://www.hotstar.com/in/movies/20000-Leagues-Under-the-Sea/4SAB7qEx02M1
 

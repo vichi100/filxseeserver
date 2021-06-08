@@ -8,6 +8,7 @@ const { nanoid } = require('nanoid');
 const axios = require('axios');
 const Constants = require('./constants');
 var ObjectId = require('mongodb').ObjectID;
+const { MongoClient } = require('mongodb');
 // import { diff } from './util';
 
 // The Movie Database
@@ -33,6 +34,7 @@ const UserAction = require('./models/userAction');
 const MovieRating = require('./models/movieRating');
 const UserContacts = require('./models/userContacts');
 const AllUsers = require('./models/allUsers');
+const Util = require('./models/util');
 
 const RATTING_ARRAY = [ 'loved_it', 'dumb_but_entertaining', 'just_time_pass', 'worthless' ];
 
@@ -57,8 +59,10 @@ app.use(function(req, res, next) {
 });
 
 // start: Connect to DB
+// const dbURL = 'mongodb+srv://vichi:vichi123@cluster0.3gcit.mongodb.net/flixsee?retryWrites=true&w=majority'
+const dbURL = 'mongodb+srv://vichi:vichi123@cluster0.emt5x.mongodb.net/flicksick_india?retryWrites=true&w=majority';
 mongoose
-	.connect('mongodb+srv://vichi:vichi123@cluster0.3gcit.mongodb.net/flixsee?retryWrites=true&w=majority')
+	.connect(dbURL)
 	.then(() => {
 		// app.listen(6000 ,'0.0.0.0');
 		app.listen(3000, '0.0.0.0', () => {
@@ -74,6 +78,16 @@ mongoose
 app.post('/getUserDetails', function(req, res) {
 	console.log('getUserDetails');
 	getUserDetails(req, res);
+});
+
+app.post('/getTopMoviesOfTheYear', function(req, res) {
+	console.log('getTopMoviesOfTheYear');
+	getTopMoviesOfTheYear(req, res);
+});
+
+app.post('/getUtilData', function(req, res) {
+	console.log('getUtilData');
+	getUtilData(req, res);
 });
 
 app.post('/generateOTP', function(req, res) {
@@ -111,6 +125,34 @@ app.post('/saveNewContact', function(req, res) {
 	saveNewContact(req, res);
 });
 
+app.post('/getMovieDetailData', function(req, res) {
+	console.log('getMovieDetailData');
+	getMovieDetailData(req, res);
+});
+
+app.post('/addRatingAndSeenFlag', function(req, res) {
+	console.log('addRatingAndSeenFlag');
+	addRatingAndSeenFlag(req, res);
+});
+
+const getUtilData = (req, res) => {
+	console.log(JSON.stringify(req.body));
+	const obj = JSON.parse(JSON.stringify(req.body));
+	Util.find({})
+		.then((result) => {
+			res.send(JSON.stringify(result));
+			res.end();
+			console.log('response sent');
+			return;
+		})
+		.catch((err) => {
+			console.error(`getHomeScreenData# Failed to fetch documents : ${err}`);
+			res.send(JSON.stringify('fail'));
+			res.end();
+			return;
+		});
+};
+
 const generateOTP = (req, res) => {
 	console.log(JSON.stringify(req.body));
 	const obj = JSON.parse(JSON.stringify(req.body));
@@ -124,6 +166,7 @@ const generateOTP = (req, res) => {
 			res.send(JSON.stringify('success'));
 			res.end();
 			console.log('response sent');
+			return;
 		})
 		.catch((err) => {
 			console.error(`getHomeScreenData# Failed to fetch documents : ${err}`);
@@ -142,10 +185,10 @@ const getHomeScreenData = (req, res) => {
 	// const trendingThisWeek = TrendingThisWeek.find({}).exec();
 
 	// START: THESE TWO ARE FOR TESTING REMOVE BEFORE PRODUCTION
-	const friendList = Movie.find({}).exec();
-	const trendingToday = Movie.find({}).exec();
-	const trendingThisWeek = Movie.find({}).exec();
-	const masterCut = Movie.find({}).exec();
+	const friendList = Movie.find({}).limit(8).exec();
+	const trendingToday = Movie.find({}).limit(8).exec();
+	const trendingThisWeek = Movie.find({}).limit(8).exec();
+	const masterCut = Movie.find({}).limit(8).exec();
 	//END
 	Promise.all([ friendList, trendingToday, trendingThisWeek, masterCut ])
 		.then(([ res1, res2, res3, res4 ]) => {
@@ -162,12 +205,12 @@ const getHomeScreenData = (req, res) => {
 				{
 					title: 'Popular This Week',
 					data: res3
-				},
-
-				{
-					title: 'Master Piece',
-					data: res4
 				}
+
+				// {
+				// 	title: 'Top Of The Year',
+				// 	data: res4
+				// }
 			];
 
 			res.send(JSON.stringify(homeScreenData));
@@ -181,16 +224,6 @@ const getHomeScreenData = (req, res) => {
 			return;
 		});
 };
-
-app.post('/getMovieDetailData', function(req, res) {
-	console.log('getMovieDetailData');
-	getMovieDetailData(req, res);
-});
-
-app.post('/addRatingAndSeenFlag', function(req, res) {
-	console.log('addRatingAndSeenFlag');
-	addRatingAndSeenFlag(req, res);
-});
 
 const searchMovieByTitle = (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
@@ -266,15 +299,100 @@ const fetchOnScrollDownMovies = (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
 	console.log('fetchOnScrollDownMovies', JSON.parse(JSON.stringify(req.body)));
 	const objId = obj.id; // this is ObjectId _id
-	const category = obj.category;
+	const genres = obj.genres;
+	const releaseDate = obj.releaseDate;
+	var query = null;
+	if (genres.toUpperCase() == 'all'.toUpperCase() && releaseDate.toString().toUpperCase() === 'all'.toUpperCase()) {
+		query = {};
+	}
+	if (genres.toUpperCase() !== 'all'.toUpperCase() && releaseDate.toString().toUpperCase() === 'all'.toUpperCase()) {
+		query = { 'genres.name': { $in: [ genres ] } };
+	}
+
+	if (genres.toUpperCase() === 'all'.toUpperCase() && releaseDate.toString().toUpperCase() !== 'all'.toUpperCase()) {
+		query = { release_date: releaseDate };
+	}
+
+	if (genres.toUpperCase() !== 'all'.toUpperCase() && releaseDate.toString().toUpperCase() !== 'all'.toUpperCase()) {
+		query = { 'genres.name': { $in: [ genres ] }, release_date: releaseDate };
+	}
+	// const query = { 'genres.name': { $in: [ genres ] } };
+	if (obj.id === 0) {
+		console.log('1');
+		console.log('query: ', query);
+		Movie.find(query)
+			.sort({
+				// _id: 1,
+				imdb_rating: -1
+			})
+			.limit(50)
+			.then((result) => {
+				res.send(JSON.stringify(result));
+				res.end();
+				return;
+			})
+			.catch((err) => {
+				console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
+				res.send(JSON.stringify(null));
+				res.end();
+				return;
+			});
+	} else {
+		console.log('2');
+		query['_id'] = { $gt: ObjectId(objId) };
+		console.log('query: ', query);
+		Movie.find(query)
+			.sort({
+				// _id: 1,
+				imdb_rating: -1
+			})
+			.skip(50)
+			.limit(50)
+			.then((result) => {
+				// console.log('result: ', JSON.stringify(result[7].genres));
+				res.send(JSON.stringify(result));
+				res.end();
+				return;
+			})
+			.catch((err) => {
+				console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
+				res.send(JSON.stringify(null));
+				res.end();
+				return;
+			});
+	}
+};
+
+const fetchOnScrollDownMoviesX = (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
+	console.log('fetchOnScrollDownMovies', JSON.parse(JSON.stringify(req.body)));
+	const objId = obj.id; // this is ObjectId _id
+	const genres = obj.genres;
+	const releaseDate = obj.releaseDate;
+	var query = null;
+	if (genres.toUpperCase() == 'all'.toUpperCase() && releaseDate.toString.toUpperCase === 'all'.toUpperCase()) {
+		query = {};
+	}
+	if (genres.toUpperCase() !== 'all'.toUpperCase() && releaseDate.toString.toUpperCase === 'all'.toUpperCase()) {
+		query = { 'genres.name': { $in: [ genres ] } };
+	}
+
+	if (genres.toUpperCase() === 'all'.toUpperCase() && releaseDate.toString.toUpperCase !== 'all'.toUpperCase()) {
+		query = { release_date: releaseDate };
+	}
+
+	if (genres.toUpperCase() !== 'all'.toUpperCase() && releaseDate.toString.toUpperCase !== 'all'.toUpperCase()) {
+		query = { 'genres.name': { $in: [ genres ] }, release_date: releaseDate };
+	}
+	// const query = { 'genres.name': { $in: [ genres ] } };
 	if (obj.id === '0') {
 		console.log('1');
-		if (category !== 'all') {
-			Movie.find({})
+		if (genres.toUpperCase() !== 'all'.toUpperCase()) {
+			Movie.find(query)
 				.sort({
 					_id: 1
 				})
-				.limit(8)
+				.limit(50)
 				.then((result) => {
 					res.send(JSON.stringify(result));
 					res.end();
@@ -288,11 +406,11 @@ const fetchOnScrollDownMovies = (req, res) => {
 				});
 		} else {
 			console.log('2');
-			Movie.find({ 'genres.name': { $in: [ 'Drama', 'History' ] } })
+			Movie.find({})
 				.sort({
 					_id: 1
 				})
-				.limit(8)
+				.limit(50)
 				.then((result) => {
 					res.send(JSON.stringify(result));
 					res.end();
@@ -306,13 +424,13 @@ const fetchOnScrollDownMovies = (req, res) => {
 				});
 		}
 	} else {
-		if (category !== 'all') {
+		if (genres.toUpperCase() !== 'all'.toUpperCase()) {
 			console.log('3');
-			Movie.find({ 'genres.name': { $in: [ 'Drama', 'History' ] } })
+			Movie.find({ _id: { $gt: ObjectId(objId) }, 'genres.name': { $in: [ genres ] } })
 				.sort({
 					_id: 1
 				})
-				.limit(8)
+				.limit(50)
 				.then((result) => {
 					// console.log('result: ', JSON.stringify(result[7].genres));
 					res.send(JSON.stringify(result));
@@ -331,7 +449,7 @@ const fetchOnScrollDownMovies = (req, res) => {
 				.sort({
 					_id: 1
 				})
-				.limit(8)
+				.limit(50)
 				.then((result) => {
 					res.send(JSON.stringify(result));
 					res.end();
@@ -387,10 +505,7 @@ const saveNewContact = (req, res) => {
 			const tempFriendsOff = { ...friendsOffDict, ...diffsDict };
 			//TEST THIS BEFORE PROD
 			UserContacts.collection
-				.insertOne({
-					id: user_id,
-					friends_off: tempFriendsOff
-				})
+				.updateOne({ id: user_id }, { $set: { friends_off: tempFriendsOff } })
 				.then((result) => {
 					res.send(JSON.stringify('success'));
 					res.end();
@@ -426,6 +541,45 @@ const saveNewContact = (req, res) => {
 };
 
 const addRatingAndSeenFlag = (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
+	console.log(JSON.stringify(req.body));
+	const userId = obj.user_id;
+	const mobile = obj.mobile;
+	const fsIdStr = obj.fs_id.toString();
+	const rating_code = obj.rating_code;
+	const ratingStr = RATTING_ARRAY[Number(rating_code)];
+	const newTemp = 'already_seen.' + fsIdStr;
+	const newTempRating = 'rating.' + fsIdStr;
+	console.log(ratingStr);
+	const updateUserAction = UserAction.collection.updateOne(
+		{ id: userId },
+		{ $set: { [newTemp]: 'y', [newTempRating]: rating_code } },
+		{ upsert: true }
+	);
+
+	const updateRating = Movie.collection.updateOne(
+		{ fs_id: fsIdStr },
+		{ $inc: { [ratingStr]: 1, total_votes: 1 } },
+		{ upsert: true }
+	);
+
+	Promise.all([ updateUserAction, updateRating ])
+		.then(([ result1, result2 ]) => {
+			// console.log('result1: ', result1.result);
+			// console.log('result2: ', result2);
+			res.send(JSON.stringify('success'));
+			res.end();
+			return;
+		})
+		.catch((err) => {
+			console.error(`addRatingAndSeenFlag# Failed to update documents : ${err}`);
+			res.send(JSON.stringify('fail'));
+			res.end();
+			return;
+		});
+};
+
+const addRatingAndSeenFlagX = (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
 	console.log(JSON.stringify(req.body));
 	const userId = obj.user_id;
@@ -514,6 +668,27 @@ const getUserDetails = (req, res) => {
 		.catch((err) => {
 			console.error(`getUserDetails# Failed to fetch documents : ${err}`);
 			res.send(JSON.stringify(null));
+			res.end();
+			return;
+		});
+};
+
+const getTopMoviesOfTheYear = (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
+	console.log(JSON.stringify(req.body));
+	const releaseDate = obj.releaseDate;
+	// Movie.find({ release_date: releaseDate }, { imdb_rating: { $gt: 30 } })
+	Movie.find({ release_date: releaseDate, imdb_rating: { $gt: 80 } })
+		.sort({ imdb_rating: -1 })
+		.then((result) => {
+			console.log('result   : ' + result);
+			res.send(JSON.stringify(result));
+			res.end();
+			return;
+		})
+		.catch((err) => {
+			console.error(`getTopMoviesOfTheYear# Failed to fetch documents : ${err}`);
+			res.send(JSON.stringify([]));
 			res.end();
 			return;
 		});
@@ -728,3 +903,9 @@ const diff = (obj1, obj2) => {
 // movie freak
 
 // https://www.google.com/search?q=watching%20movie%20logo&tbm=isch&tbs=rimg:CcRUhbmpaj7fYZMnNPc_1FWsW&hl=en&sa=X&ved=0CB4QuIIBahcKEwi4_JD7zsXwAhUAAAAAHQAAAAAQAg&biw=1440&bih=632
+
+// /usr/local/Cellar/mongodb-community-shell/4.2.0
+
+// mongo "mongodb+srv://cluster0.emt5x.mongodb.net/flicksick_india" --username vichi
+
+// j38DS7x9smN54Tp   209.145.57.26
