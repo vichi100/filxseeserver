@@ -3,7 +3,8 @@ const Schema = mongoose.Schema;
 
 const utilSchema = new Schema({
 	genres: {},
-	years: []
+	years: [],
+	category: []
 });
 
 module.exports = mongoose.model('Util', utilSchema);

@@ -35,6 +35,7 @@ const genresX = {
 	'10764': 'Reality',
 	'10767': 'Talk Show'
 };
+
 // mongodb+srv://vichi:<password>@cluster0.emt5x.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
 mongoose
 	.connect('mongodb+srv://vichi:vichi123@cluster0.emt5x.mongodb.net/flicksick_india?retryWrites=true&w=majority')

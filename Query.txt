@@ -1,0 +1,213 @@
+db.movies.find( { 'genres.name': { $all: [ [ "Action"] ] } } )
+
+######## romcom: romance + comady ########## X
+
+{ 'genres.name': { $all: [  "Romance", "Comedy"] } } 
+
+######## sport : sport+history+biography   in overview: coach+game+boxing+boxer+basketball+footbal+########## X
+
+
+{ $or: [ { 'genres.name': { $all: [  "Sport", "History", "Biography"] } }, 
+{ 'genres.name': { $all: [  "Sport", "History"] } }, 
+{ 'genres.name': { $all: [  "Sport", "Biography"] } } ] }
+
+
+######## zombi: search zombi in overview ########## X
+
+{"overview": /zombi/}
+
+######## gangster: search gangster in overview ########## X
+
+{
+    $or : [ 
+        {"overview": /gangster/},
+        {"overview": /gang/},
+        {"overview": /mafia/},
+        {"overview": /drug lord/},
+        {"overview": /organized crime/},
+    ],
+    'genres.name': { $in: [  "Crime"] }        
+}
+
+######## horror ########## X
+
+{ 'genres.name': "Horror" } 
+
+######## Happy All the way: comedy + drama ########## X
+
+{ 'genres.name': { $all: [  "Comedy", "Drama"] } } 
+
+
+######## Sci-Fi ########## X
+
+{ 'genres.name': { $in: [  "Science Fiction"] } } 
+
+
+
+######## murder + mystery + killer ########## X
+
+
+{
+    $or : [ 
+        {"overview": /murder/},
+        {"overview": /mystery/},
+        {"overview": /killed/}
+    ],
+    'genres.name': { $in: [  "Crime"] }        
+}
+
+
+
+######## serial killer ########## X
+
+
+
+{
+    $or : [ 
+        {"overview": /serial/},
+        {"overview": /killer/},
+        {"overview": /murders/},
+        {"overview": /killings/},
+    ],
+    'genres.name': { $in: [  "Crime"] }        
+}
+
+######## space: planet+ space+universe+explorers+Earth+Astronaut+Shuttle+alien+galaxy+spacecraft+NASA+asteroid ########## X
+
+{
+    $or : [ 
+        {"overview": /planet/},
+        {"overview": /space/},
+        {"overview": /universe/},
+        {"overview": /explorers/},
+        {"overview": /Astronaut/},
+        {"overview": /Shuttle/},
+        {"overview": /alien/},
+        {"overview": /galaxy/},
+        {"overview": /spacecraft/},
+        {"overview": /NASA/},
+        {"overview": /asteroid/},
+    ],
+       'genres.name': { $in: [  "Adventure"] }     
+}
+
+
+######## spy: cia+kgb+mi6+spy+agent+mossad+james bond+007+kingsmen ########## X
+
+{
+    $or : [ 
+        {"overview": /CIA/},
+        {"overview": /KGB/},
+        {"overview": /mi6/},
+        {"overview": /spy/},
+        {"overview": /mossad/},
+        {"overview": /james bond/},
+        {"overview": /007/},
+        {"overview": /Secret Service/},
+        {"overview": /agent/},
+    ],
+       'genres.name': { $in: [  "Action"] }     
+}
+
+######## war ########## X
+
+
+{ 'genres.name': "War" } 
+
+
+######## Animation ########## X
+
+
+{ 'genres.name': "Animation" } 
+
+######## Sitcom ########## X
+
+
+{ 'genres.name': { $in: [  "Comedy"] } , media_type: "series" }
+
+
+"Biography"
+2
+:
+"Film Noir"
+3
+:
+"Game Show"
+4
+:
+"Musical"
+5
+:
+"Sport"
+6
+:
+"Short"
+7
+:
+"Adult"
+12
+:
+"Adventure"
+14
+:
+"Fantasy"
+16
+:
+"Animation"
+18
+:
+"Drama"
+27
+:
+"Horror"
+28
+:
+"Action"
+35
+:
+"Comedy"
+36
+:
+"History"
+37
+:
+"Western"
+53
+:
+"Thriller"
+80
+:
+"Crime"
+99
+:
+"Documentary"
+878
+:
+"Science Fiction"
+9648
+:
+"Mystery"
+10402
+:
+"Music"
+10749
+:
+"Romance"
+10751
+:
+"Family"
+10752
+:
+"War"
+10763
+:
+"News"
+10764
+:
+"Reality"
+10767
+:
+"Talk Show"
+
+
+

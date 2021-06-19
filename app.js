@@ -9,6 +9,7 @@ const axios = require('axios');
 const Constants = require('./constants');
 var ObjectId = require('mongodb').ObjectID;
 const { MongoClient } = require('mongodb');
+const Schema = mongoose.Schema;
 // import { diff } from './util';
 
 // The Movie Database
@@ -100,6 +101,11 @@ app.post('/getHomeScreenData', function(req, res) {
 	getHomeScreenData(req, res);
 });
 
+app.post('/getMovieByCategory', function(req, res) {
+	console.log('getMovieByCategory');
+	getMovieByCategory(req, res);
+});
+
 app.post('/searchMovieByTitle', function(req, res) {
 	console.log('searchMovieByTitle');
 	searchMovieByTitle(req, res);
@@ -142,11 +148,11 @@ const getUtilData = (req, res) => {
 		.then((result) => {
 			res.send(JSON.stringify(result));
 			res.end();
-			console.log('response sent');
+			// console.log('response sent');
 			return;
 		})
 		.catch((err) => {
-			console.error(`getHomeScreenData# Failed to fetch documents : ${err}`);
+			console.error(`getUtilData# Failed to fetch documents : ${err}`);
 			res.send(JSON.stringify('fail'));
 			res.end();
 			return;
@@ -162,17 +168,62 @@ const generateOTP = (req, res) => {
 	axios
 		.get(`https://2factor.in/API/V1/${OTP_API}/SMS/${mobile}/${OTP}`)
 		.then((response) => {
-			console.log(response);
+			// console.log(response);
 			res.send(JSON.stringify('success'));
 			res.end();
-			console.log('response sent');
+			// console.log('response sent');
 			return;
 		})
 		.catch((err) => {
-			console.error(`getHomeScreenData# Failed to fetch documents : ${err}`);
+			console.error(`generateOTP# Failed to fetch documents : ${err}`);
 			res.send(JSON.stringify('fail'));
 			res.end();
 			return;
+		});
+};
+
+const getMovieByCategory = (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
+	console.log(JSON.parse(JSON.stringify(req.body)));
+	const category = obj.category;
+	const document = obj.document;
+	var categorySchema = new Schema({}, { strict: false });
+	// var Category = mongoose.model(document);
+	// if (Category) {
+	// 	Category = mongoose.model(document, categorySchema);
+	// }
+	var Category = mongoose.model(document, categorySchema);
+	Category.find({})
+		.then((result) => {
+			console.log(result);
+			res.send(JSON.stringify(result));
+			res.end();
+			delete mongoose.connection.models[document];
+			return;
+		})
+		.catch((err) => {
+			console.log(err.code);
+			if (err instanceof OverwriteModelError) {
+				console.log('here');
+				Category.find({})
+					.then((result) => {
+						console.log(result);
+						res.send(JSON.stringify(result));
+						res.end();
+						return;
+					})
+					.catch((err) => {
+						console.error(`getMovieByCategory # Failed to fetch data from ${document} by name: ${err}`);
+						res.send(JSON.stringify(null));
+						res.end();
+						return;
+					});
+			} else {
+				console.error(`getMovieByCategory # Failed to fetch data from ${document} by name: ${err}`);
+				res.send(JSON.stringify(null));
+				res.end();
+				return;
+			}
 		});
 };
 
@@ -187,11 +238,15 @@ const getHomeScreenData = (req, res) => {
 	// START: THESE TWO ARE FOR TESTING REMOVE BEFORE PRODUCTION
 	const friendList = Movie.find({}).limit(8).exec();
 	const trendingToday = Movie.find({}).limit(8).exec();
-	const trendingThisWeek = Movie.find({}).limit(8).exec();
+
+	// var romComSchema = new Schema({}, { strict: false });
+	// var RomCom = mongoose.model('romcoms', romComSchema);
+	// const romcomData = RomCom.find({}).exec();
+
 	const masterCut = Movie.find({}).limit(8).exec();
 	//END
-	Promise.all([ friendList, trendingToday, trendingThisWeek, masterCut ])
-		.then(([ res1, res2, res3, res4 ]) => {
+	Promise.all([ friendList, trendingToday ])
+		.then(([ res1, res2 ]) => {
 			// console.log('Results trendingCurrentWeek: ', res2.results);
 			const homeScreenData = [
 				{
@@ -199,18 +254,9 @@ const getHomeScreenData = (req, res) => {
 					data: res1
 				},
 				{
-					title: 'Trending Today',
+					title: 'Trending...',
 					data: res2
-				},
-				{
-					title: 'Popular This Week',
-					data: res3
 				}
-
-				// {
-				// 	title: 'Top Of The Year',
-				// 	data: res4
-				// }
 			];
 
 			res.send(JSON.stringify(homeScreenData));
@@ -272,7 +318,7 @@ const fetchOnScrollUpMovies = (req, res) => {
 			})
 			.limit(8)
 			.then((result) => {
-				console.log(JSON.stringify(result));
+				// console.log(JSON.stringify(result));
 				var tempX = result.sort((a, b) => {
 					if (a._id > b._id) {
 						return 1;
@@ -318,8 +364,8 @@ const fetchOnScrollDownMovies = (req, res) => {
 	}
 	// const query = { 'genres.name': { $in: [ genres ] } };
 	if (obj.id === 0) {
-		console.log('1');
-		console.log('query: ', query);
+		// console.log('1');
+		// console.log('query: ', query);
 		Movie.find(query)
 			.sort({
 				// _id: 1,
@@ -338,9 +384,9 @@ const fetchOnScrollDownMovies = (req, res) => {
 				return;
 			});
 	} else {
-		console.log('2');
+		// console.log('2');
 		query['_id'] = { $gt: ObjectId(objId) };
-		console.log('query: ', query);
+		// console.log('query: ', query);
 		Movie.find(query)
 			.sort({
 				// _id: 1,
@@ -386,7 +432,7 @@ const fetchOnScrollDownMoviesX = (req, res) => {
 	}
 	// const query = { 'genres.name': { $in: [ genres ] } };
 	if (obj.id === '0') {
-		console.log('1');
+		// console.log('1');
 		if (genres.toUpperCase() !== 'all'.toUpperCase()) {
 			Movie.find(query)
 				.sort({
@@ -405,7 +451,7 @@ const fetchOnScrollDownMoviesX = (req, res) => {
 					return;
 				});
 		} else {
-			console.log('2');
+			// console.log('2');
 			Movie.find({})
 				.sort({
 					_id: 1
@@ -425,7 +471,7 @@ const fetchOnScrollDownMoviesX = (req, res) => {
 		}
 	} else {
 		if (genres.toUpperCase() !== 'all'.toUpperCase()) {
-			console.log('3');
+			// console.log('3');
 			Movie.find({ _id: { $gt: ObjectId(objId) }, 'genres.name': { $in: [ genres ] } })
 				.sort({
 					_id: 1
@@ -444,7 +490,7 @@ const fetchOnScrollDownMoviesX = (req, res) => {
 					return;
 				});
 		} else {
-			console.log('4');
+			// console.log('4');
 			Movie.find({ _id: { $gt: ObjectId(objId) } })
 				.sort({
 					_id: 1
@@ -496,7 +542,7 @@ const saveNewContact = (req, res) => {
 	const contacts = obj.contact_dict;
 	UserContacts.findOne({ id: user_id }).then((result) => {
 		if (result) {
-			console.log('contacts: ', result);
+			// console.log('contacts: ', result);
 			const friendsOffDict = result.friends_off;
 			const friendsOnDict = result.friends_on;
 			const friendsBlockedDict = result.friends_blocked;
@@ -681,7 +727,7 @@ const getTopMoviesOfTheYear = (req, res) => {
 	Movie.find({ release_date: releaseDate, imdb_rating: { $gt: 80 } })
 		.sort({ imdb_rating: -1 })
 		.then((result) => {
-			console.log('result   : ' + result);
+			// console.log('result   : ' + result);
 			res.send(JSON.stringify(result));
 			res.end();
 			return;
@@ -732,7 +778,7 @@ const getMovieDetailData = (req, res) => {
 	console.log('fsID: ', fsID);
 	Movie.findOne({ fs_id: fsID })
 		.then((result) => {
-			console.log(result);
+			// console.log(result);
 			res.send(result);
 			res.end();
 		})
