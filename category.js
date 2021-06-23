@@ -27,6 +27,14 @@ const category = [
 		}
 	},
 	{
+		title: 'biographies',
+		query: {
+			'genres.name': { $in: [ 'Biography' ] },
+			media_type: 'series',
+			imdb_rating: { $gte: 6.5 }
+		}
+	},
+	{
 		title: 'happy_ending',
 		query: {
 			$and: [
@@ -202,6 +210,10 @@ const categoryMapping = [
 		document: 'sitcoms'
 	},
 	{
+		category: 'Biography',
+		document: 'biographies'
+	},
+	{
 		category: 'Happy Ending',
 		document: 'happy_endings'
 	},
@@ -209,6 +221,7 @@ const categoryMapping = [
 		category: 'Sport',
 		document: 'sports'
 	},
+
 	{
 		category: 'Animation',
 		document: 'animations'
@@ -273,7 +286,7 @@ category.map((item) => {
 			var thingSchema = new Schema({}, { strict: false });
 			var Thing = mongoose.model(item.title, thingSchema);
 			// var thing = new Thing(result);
-			// Thing.collection.insertMany(result); // iAmNotInTheSchema is now saved to the db!!
+			Thing.collection.insertMany(result); // iAmNotInTheSchema is now saved to the db!!
 		})
 		.catch((err) => {
 			console.log(err);

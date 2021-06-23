@@ -1,0 +1,29 @@
+{
+	"apps": [
+		{
+			"name": "FLICKSICK APP SERVER",
+			"cwd": "./flicksick_app_server",
+			"script": "npm start",
+			"env": {
+				"NODE_ENV": "production"
+			}
+		},
+		{
+			"name": "FLICKSICK WEB SERVER",
+			"cwd": "./flicksick_web_server",
+			"script": "npm start",
+			"env": {
+				"NODE_ENV": "production"
+			}
+		},
+		{
+			"name": "FLICKSICK WEB APP",
+			"cwd": "./flicksick_web_app/node_modules/react-scripts/scripts",
+			"script": "start.js",
+			"env": {
+				"NODE_ENV": "production",
+				"PORT": 3010
+			}
+		}
+	]
+}

@@ -211,3 +211,9 @@ db.movies.find( { 'genres.name': { $all: [ [ "Action"] ] } } )
 
 
 
+
+
+
+
+
+

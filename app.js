@@ -30,6 +30,7 @@ const User = require('./models/user');
 const TrendingToday = require('./models/trendingToday');
 const TrendingThisWeek = require('./models/trendingThisWeek');
 const Movie = require('./models/movie');
+const HomeData = require('./models/homeData');
 const OMDBDocument = require('./models/omdb');
 const UserAction = require('./models/userAction');
 const MovieRating = require('./models/movieRating');
@@ -66,7 +67,7 @@ mongoose
 	.connect(dbURL)
 	.then(() => {
 		// app.listen(6000 ,'0.0.0.0');
-		app.listen(3000, '0.0.0.0', () => {
+		app.listen(3090, '0.0.0.0', () => {
 			console.log('server is listening on 3000 port');
 		});
 
@@ -195,7 +196,7 @@ const getMovieByCategory = (req, res) => {
 	var Category = mongoose.model(document, categorySchema);
 	Category.find({})
 		.then((result) => {
-			console.log(result);
+			// console.log(result);
 			res.send(JSON.stringify(result));
 			res.end();
 			delete mongoose.connection.models[document];
@@ -236,8 +237,8 @@ const getHomeScreenData = (req, res) => {
 	// const trendingThisWeek = TrendingThisWeek.find({}).exec();
 
 	// START: THESE TWO ARE FOR TESTING REMOVE BEFORE PRODUCTION
-	const friendList = Movie.find({}).limit(8).exec();
-	const trendingToday = Movie.find({}).limit(8).exec();
+	const friendList = HomeData.find({}).limit(8).exec();
+	const trendingToday = HomeData.find({}).limit(8).exec();
 
 	// var romComSchema = new Schema({}, { strict: false });
 	// var RomCom = mongoose.model('romcoms', romComSchema);
@@ -955,3 +956,9 @@ const diff = (obj1, obj2) => {
 // mongo "mongodb+srv://cluster0.emt5x.mongodb.net/flicksick_india" --username vichi
 
 // j38DS7x9smN54Tp   209.145.57.26
+
+// node_modules/react_scripts/start.js
+
+// /root/flicksick/flicksick_web_app/node_modules/react-scripts/scripts/start.js
+
+// pm2 start node_modules/react-scripts/scripts/start.js
