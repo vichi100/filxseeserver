@@ -68,7 +68,7 @@ mongoose
 	.then(() => {
 		// app.listen(6000 ,'0.0.0.0');
 		app.listen(3090, '0.0.0.0', () => {
-			console.log('server is listening on 3000 port');
+			console.log('server is listening on 3090 port');
 		});
 
 		console.log('MongoDB connected...server listening at 3000');
