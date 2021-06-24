@@ -82,6 +82,11 @@ app.post('/getUserDetails', function(req, res) {
 	getUserDetails(req, res);
 });
 
+app.post('/getFSMovieRating', function(req, res) {
+	console.log('getFSMovieRating');
+	getFSMovieRating(req, res);
+});
+
 app.post('/getTopMoviesOfTheYear', function(req, res) {
 	console.log('getTopMoviesOfTheYear');
 	getTopMoviesOfTheYear(req, res);
@@ -660,6 +665,22 @@ const addRatingAndSeenFlagX = (req, res) => {
 		.catch((err) => {
 			console.error(`addRatingAndSeenFlag# Failed to update documents : ${err}`);
 			res.send(JSON.stringify('fail'));
+			res.end();
+			return;
+		});
+};
+
+const getFSMovieRating = (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
+	MovieRating.findOne({ fs_id: obj.fs_id })
+		.then((result) => {
+			res.send(JSON.stringify(result));
+			res.end();
+			return;
+		})
+		.catch((err) => {
+			console.error(`getFSMovieRating# Failed to fetch documents : ${err}`);
+			res.send(JSON.stringify(null));
 			res.end();
 			return;
 		});
