@@ -34,6 +34,7 @@ const HomeData = require('./models/homeData');
 const OMDBDocument = require('./models/omdb');
 const UserAction = require('./models/userAction');
 const MovieRating = require('./models/movieRating');
+const TMDBTrending = require('./models/tmdbTrending');
 const UserContacts = require('./models/userContacts');
 const AllUsers = require('./models/allUsers');
 const Util = require('./models/util');
@@ -76,6 +77,11 @@ mongoose
 	.catch((err) => console.log(err));
 
 // end: Connect to DB
+
+app.post('/getTrendingMovie', function(req, res) {
+	console.log('getTrendingMovie');
+	getTrendingMovie(req, res);
+});
 
 app.post('/getUserDetails', function(req, res) {
 	console.log('getUserDetails');
@@ -665,6 +671,22 @@ const addRatingAndSeenFlagX = (req, res) => {
 		.catch((err) => {
 			console.error(`addRatingAndSeenFlag# Failed to update documents : ${err}`);
 			res.send(JSON.stringify('fail'));
+			res.end();
+			return;
+		});
+};
+
+const getTrendingMovie = (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
+	TMDBTrending.find()
+		.then((result) => {
+			res.send(JSON.stringify(result));
+			res.end();
+			return;
+		})
+		.catch((err) => {
+			console.error(`getTrendingMovie# Failed to fetch documents : ${err}`);
+			res.send(JSON.stringify(null));
 			res.end();
 			return;
 		});
