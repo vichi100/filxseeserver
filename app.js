@@ -206,6 +206,10 @@ const getMovieByCategory = (req, res) => {
 	// }
 	var Category = mongoose.model(document, categorySchema);
 	Category.find({})
+		.sort({
+			release_date: -1,
+			imdb_rating: -1
+		})
 		.then((result) => {
 			// console.log(result);
 			res.send(JSON.stringify(result));
@@ -609,6 +613,8 @@ const addRatingAndSeenFlag = (req, res) => {
 	const newTemp = 'already_seen.' + fsIdStr;
 	const newTempRating = 'rating.' + fsIdStr;
 	console.log(ratingStr);
+	const newRatingStr = 'fs_rating.' + ratingStr;
+	const newTotalVotes = 'fs_rating.' + 'total_votes';
 	const updateUserAction = UserAction.collection.updateOne(
 		{ id: userId },
 		{ $set: { [newTemp]: 'y', [newTempRating]: rating_code } },
@@ -617,7 +623,7 @@ const addRatingAndSeenFlag = (req, res) => {
 
 	const updateRating = Movie.collection.updateOne(
 		{ fs_id: fsIdStr },
-		{ $inc: { [ratingStr]: 1, total_votes: 1 } },
+		{ $inc: { [newRatingStr]: 1, [newTotalVotes]: 1 } },
 		{ upsert: true }
 	);
 
