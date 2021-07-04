@@ -138,6 +138,11 @@ app.post('/getFriendsData', function(req, res) {
 	getFriendsData(req, res);
 });
 
+app.post('/sendInvitation', function(req, res) {
+	console.log('sendInvitation');
+	sendInvitation(req, res);
+});
+
 app.post('/saveNewContact', function(req, res) {
 	console.log('saveNewContact');
 	saveNewContact(req, res);
@@ -178,7 +183,7 @@ const generateOTP = (req, res) => {
 	const OTP = obj.otp;
 
 	axios
-		.get(`https://2factor.in/API/V1/${OTP_API}/SMS/${mobile}/${OTP}`)
+		.get(`https://2factor.in/API/V1/${OTP_API}/SMS/${mobile}/${OTP}/FlickSickOTP1`)
 		.then((response) => {
 			// console.log(response);
 			res.send(JSON.stringify('success'));
@@ -527,6 +532,41 @@ const fetchOnScrollDownMoviesX = (req, res) => {
 	}
 };
 
+const sendInvitation = (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
+	console.log(JSON.parse(JSON.stringify(req.body)));
+	const inviteeName = obj.invitee_name;
+	const inviteeMobile = obj.invitee_mobile;
+	const userMobile = obj.user_mobile;
+	const addKey = 'invitation_sent.' + inviteeMobile;
+	const removeKey = 'friends_off.' + inviteeMobile;
+	UserContacts.collection
+		.updateOne({ id: userMobile }, { $set: { [addKey]: inviteeName } })
+		.then((result) => {
+			UserContacts.collection
+				.updateOne({ id: userMobile }, { $unset: { [removeKey]: inviteeName } })
+				.then((result1) => {
+					res.send('success');
+					res.end();
+					return;
+				})
+				.catch((err) => {
+					console.error(`sendInvitation1 # Failed to insert data in UserContacts: ${err}`);
+					res.send(JSON.stringify('fail'));
+					res.end();
+					return;
+				});
+		})
+		.catch((err) => {
+			console.error(`sendInvitation # Failed to insert data in UserContacts: ${err}`);
+			res.send(JSON.stringify('fail'));
+			res.end();
+			return;
+		});
+
+	// send sms to user with link to download app
+};
+
 const getFriendsData = (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
 	console.log(JSON.parse(JSON.stringify(req.body)));
@@ -585,7 +625,8 @@ const saveNewContact = (req, res) => {
 					id: user_id,
 					friends_off: contacts,
 					friends_on: {},
-					friends_blocked: {}
+					friends_blocked: {},
+					invitation_sent: {}
 				})
 				.then((result) => {
 					res.send(JSON.stringify('success'));
@@ -719,6 +760,7 @@ const getUserDetails = (req, res) => {
 	console.log(JSON.stringify(req.body));
 	const mobileXX = obj.mobile;
 	const nameXX = obj.name;
+	const countryCode = obj.country_code;
 	User.findOne({ mobile: obj.mobile })
 		.then((result) => {
 			if (result) {
@@ -731,6 +773,7 @@ const getUserDetails = (req, res) => {
 					expo_token: '',
 					name: null,
 					country: obj.country,
+					country_code: countryCode,
 					mobile: obj.mobile,
 					create_date_time: new Date(Date.now()),
 					update_date_time: new Date(Date.now())
