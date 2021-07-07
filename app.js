@@ -83,11 +83,6 @@ app.post('/getTrendingMovie', function(req, res) {
 	getTrendingMovie(req, res);
 });
 
-app.post('/getUserDetails', function(req, res) {
-	console.log('getUserDetails');
-	getUserDetails(req, res);
-});
-
 app.post('/getFSMovieRating', function(req, res) {
 	console.log('getFSMovieRating');
 	getFSMovieRating(req, res);
@@ -101,11 +96,6 @@ app.post('/getTopMoviesOfTheYear', function(req, res) {
 app.post('/getUtilData', function(req, res) {
 	console.log('getUtilData');
 	getUtilData(req, res);
-});
-
-app.post('/generateOTP', function(req, res) {
-	console.log('generateOTP');
-	generateOTP(req, res);
 });
 
 app.post('/getHomeScreenData', function(req, res) {
@@ -133,21 +123,6 @@ app.post('/fetchOnScrollDownMovies', function(req, res) {
 	fetchOnScrollDownMovies(req, res);
 });
 
-app.post('/getFriendsData', function(req, res) {
-	console.log('getFriendsData');
-	getFriendsData(req, res);
-});
-
-app.post('/sendInvitation', function(req, res) {
-	console.log('sendInvitation');
-	sendInvitation(req, res);
-});
-
-app.post('/saveNewContact', function(req, res) {
-	console.log('saveNewContact');
-	saveNewContact(req, res);
-});
-
 app.post('/getMovieDetailData', function(req, res) {
 	console.log('getMovieDetailData');
 	getMovieDetailData(req, res);
@@ -156,6 +131,11 @@ app.post('/getMovieDetailData', function(req, res) {
 app.post('/addRatingAndSeenFlag', function(req, res) {
 	console.log('addRatingAndSeenFlag');
 	addRatingAndSeenFlag(req, res);
+});
+
+app.post('/getFriendMovieList', function(req, res) {
+	console.log('getFriendMovieList');
+	getFriendMovieList(req, res);
 });
 
 const getUtilData = (req, res) => {
@@ -170,29 +150,6 @@ const getUtilData = (req, res) => {
 		})
 		.catch((err) => {
 			console.error(`getUtilData# Failed to fetch documents : ${err}`);
-			res.send(JSON.stringify('fail'));
-			res.end();
-			return;
-		});
-};
-
-const generateOTP = (req, res) => {
-	console.log(JSON.stringify(req.body));
-	const obj = JSON.parse(JSON.stringify(req.body));
-	const mobile = obj.mobile;
-	const OTP = obj.otp;
-
-	axios
-		.get(`https://2factor.in/API/V1/${OTP_API}/SMS/${mobile}/${OTP}/FlickSickOTP1`)
-		.then((response) => {
-			// console.log(response);
-			res.send(JSON.stringify('success'));
-			res.end();
-			// console.log('response sent');
-			return;
-		})
-		.catch((err) => {
-			console.error(`generateOTP# Failed to fetch documents : ${err}`);
 			res.send(JSON.stringify('fail'));
 			res.end();
 			return;
@@ -430,217 +387,32 @@ const fetchOnScrollDownMovies = (req, res) => {
 	}
 };
 
-const fetchOnScrollDownMoviesX = (req, res) => {
+const getFriendMovieList = (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
-	console.log('fetchOnScrollDownMovies', JSON.parse(JSON.stringify(req.body)));
-	const objId = obj.id; // this is ObjectId _id
-	const genres = obj.genres;
-	const releaseDate = obj.releaseDate;
-	var query = null;
-	if (genres.toUpperCase() == 'all'.toUpperCase() && releaseDate.toString.toUpperCase === 'all'.toUpperCase()) {
-		query = {};
-	}
-	if (genres.toUpperCase() !== 'all'.toUpperCase() && releaseDate.toString.toUpperCase === 'all'.toUpperCase()) {
-		query = { 'genres.name': { $in: [ genres ] } };
-	}
-
-	if (genres.toUpperCase() === 'all'.toUpperCase() && releaseDate.toString.toUpperCase !== 'all'.toUpperCase()) {
-		query = { release_date: releaseDate };
-	}
-
-	if (genres.toUpperCase() !== 'all'.toUpperCase() && releaseDate.toString.toUpperCase !== 'all'.toUpperCase()) {
-		query = { 'genres.name': { $in: [ genres ] }, release_date: releaseDate };
-	}
-	// const query = { 'genres.name': { $in: [ genres ] } };
-	if (obj.id === '0') {
-		// console.log('1');
-		if (genres.toUpperCase() !== 'all'.toUpperCase()) {
-			Movie.find(query)
-				.sort({
-					_id: 1
-				})
-				.limit(50)
-				.then((result) => {
-					res.send(JSON.stringify(result));
-					res.end();
-					return;
-				})
-				.catch((err) => {
-					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
-					res.send(JSON.stringify(null));
-					res.end();
-					return;
-				});
-		} else {
-			// console.log('2');
-			Movie.find({})
-				.sort({
-					_id: 1
-				})
-				.limit(50)
-				.then((result) => {
-					res.send(JSON.stringify(result));
-					res.end();
-					return;
-				})
-				.catch((err) => {
-					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
-					res.send(JSON.stringify(null));
-					res.end();
-					return;
-				});
-		}
-	} else {
-		if (genres.toUpperCase() !== 'all'.toUpperCase()) {
-			// console.log('3');
-			Movie.find({ _id: { $gt: ObjectId(objId) }, 'genres.name': { $in: [ genres ] } })
-				.sort({
-					_id: 1
-				})
-				.limit(50)
-				.then((result) => {
-					// console.log('result: ', JSON.stringify(result[7].genres));
-					res.send(JSON.stringify(result));
-					res.end();
-					return;
-				})
-				.catch((err) => {
-					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
-					res.send(JSON.stringify(null));
-					res.end();
-					return;
-				});
-		} else {
-			// console.log('4');
-			Movie.find({ _id: { $gt: ObjectId(objId) } })
-				.sort({
-					_id: 1
-				})
-				.limit(50)
-				.then((result) => {
-					res.send(JSON.stringify(result));
-					res.end();
-					return;
-				})
-				.catch((err) => {
-					console.error(`fetchMovies # Failed to fetch data from Movies: ${err}`);
-					res.send(JSON.stringify(null));
-					res.end();
-					return;
-				});
-		}
-	}
-};
-
-const sendInvitation = (req, res) => {
-	const obj = JSON.parse(JSON.stringify(req.body));
-	console.log(JSON.parse(JSON.stringify(req.body)));
-	const inviteeName = obj.invitee_name;
-	const inviteeMobile = obj.invitee_mobile;
-	const userMobile = obj.user_mobile;
-	const addKey = 'invitation_sent.' + inviteeMobile;
-	const removeKey = 'friends_off.' + inviteeMobile;
-	UserContacts.collection
-		.updateOne({ id: userMobile }, { $set: { [addKey]: inviteeName } })
+	console.log(JSON.stringify(req.body));
+	const friendMobile = obj.mobile;
+	UserAction.findOne({ mobile: friendMobile })
 		.then((result) => {
-			UserContacts.collection
-				.updateOne({ id: userMobile }, { $unset: { [removeKey]: inviteeName } })
-				.then((result1) => {
-					res.send('success');
+			const fsIdArray = Object.keys(result.rating);
+			Movie.find({ fs_id: { $in: fsIdArray } })
+				.then((result) => {
+					res.send(JSON.stringify(result));
 					res.end();
 					return;
 				})
 				.catch((err) => {
-					console.error(`sendInvitation1 # Failed to insert data in UserContacts: ${err}`);
-					res.send(JSON.stringify('fail'));
+					console.error(`getFriendMovieList1# Failed to fetch documents : ${err}`);
+					res.send(null);
 					res.end();
 					return;
 				});
 		})
 		.catch((err) => {
-			console.error(`sendInvitation # Failed to insert data in UserContacts: ${err}`);
-			res.send(JSON.stringify('fail'));
+			console.error(`getFriendMovieList2# Failed to fetch documents : ${err}`);
+			res.send(null);
 			res.end();
 			return;
 		});
-
-	// send sms to user with link to download app
-};
-
-const getFriendsData = (req, res) => {
-	const obj = JSON.parse(JSON.stringify(req.body));
-	console.log(JSON.parse(JSON.stringify(req.body)));
-	const user_id = obj.id;
-	UserContacts.findOne({ id: user_id })
-		.then((result) => {
-			if (result) {
-				res.send(JSON.stringify(result));
-				res.end();
-				return;
-			} else {
-				res.send(JSON.stringify({}));
-				res.end();
-				return;
-			}
-		})
-		.catch((err) => {
-			console.error(`getFriendsData # Failed to fetch data from UserContacts: ${err}`);
-			res.send(JSON.stringify('fail'));
-			res.end();
-			return;
-		});
-};
-
-const saveNewContact = (req, res) => {
-	const obj = JSON.parse(JSON.stringify(req.body));
-	console.log(JSON.parse(JSON.stringify(req.body)));
-	const user_id = obj.id;
-	const contacts = obj.contact_dict;
-	UserContacts.findOne({ id: user_id }).then((result) => {
-		if (result) {
-			// console.log('contacts: ', result);
-			const friendsOffDict = result.friends_off;
-			const friendsOnDict = result.friends_on;
-			const friendsBlockedDict = result.friends_blocked;
-			const finalDict = { ...friendsOffDict, ...friendsOnDict, ...friendsBlockedDict };
-			const diffsDict = diff(contacts, finalDict);
-			const tempFriendsOff = { ...friendsOffDict, ...diffsDict };
-			//TEST THIS BEFORE PROD
-			UserContacts.collection
-				.updateOne({ id: user_id }, { $set: { friends_off: tempFriendsOff } })
-				.then((result) => {
-					res.send(JSON.stringify('success'));
-					res.end();
-					return;
-				})
-				.catch((err) => {
-					console.error(`saveNewContact1 # Failed to insert documents in UserContacts: ${err}`);
-					res.send(JSON.stringify('fail'));
-					res.end();
-					return;
-				});
-		} else {
-			UserContacts.collection
-				.insertOne({
-					id: user_id,
-					friends_off: contacts,
-					friends_on: {},
-					friends_blocked: {},
-					invitation_sent: {}
-				})
-				.then((result) => {
-					res.send(JSON.stringify('success'));
-					res.end();
-					return;
-				})
-				.catch((err) => {
-					console.error(`saveNewContact2 # Failed to insert documents in UserContacts: ${err}`);
-					res.send(JSON.stringify('fail'));
-					res.end();
-					return;
-				});
-		}
-	});
 };
 
 const addRatingAndSeenFlag = (req, res) => {
@@ -658,52 +430,13 @@ const addRatingAndSeenFlag = (req, res) => {
 	const newTotalVotes = 'fs_rating.' + 'total_votes';
 	const updateUserAction = UserAction.collection.updateOne(
 		{ id: userId },
-		{ $set: { [newTemp]: 'y', [newTempRating]: rating_code } },
+		{ $set: { mobile: mobile, [newTempRating]: rating_code } },
 		{ upsert: true }
 	);
 
 	const updateRating = Movie.collection.updateOne(
 		{ fs_id: fsIdStr },
 		{ $inc: { [newRatingStr]: 1, [newTotalVotes]: 1 } },
-		{ upsert: true }
-	);
-
-	Promise.all([ updateUserAction, updateRating ])
-		.then(([ result1, result2 ]) => {
-			// console.log('result1: ', result1.result);
-			// console.log('result2: ', result2);
-			res.send(JSON.stringify('success'));
-			res.end();
-			return;
-		})
-		.catch((err) => {
-			console.error(`addRatingAndSeenFlag# Failed to update documents : ${err}`);
-			res.send(JSON.stringify('fail'));
-			res.end();
-			return;
-		});
-};
-
-const addRatingAndSeenFlagX = (req, res) => {
-	const obj = JSON.parse(JSON.stringify(req.body));
-	console.log(JSON.stringify(req.body));
-	const userId = obj.user_id;
-	const mobile = obj.mobile;
-	const fsIdStr = obj.fs_id.toString();
-	const rating_code = obj.rating_code;
-	const ratingStr = RATTING_ARRAY[Number(rating_code)];
-	const newTemp = 'already_seen.' + fsIdStr;
-	const newTempRating = 'rating.' + fsIdStr;
-	console.log(ratingStr);
-	const updateUserAction = UserAction.collection.updateOne(
-		{ id: userId },
-		{ $set: { [newTemp]: 'y', [newTempRating]: rating_code } },
-		{ upsert: true }
-	);
-
-	const updateRating = MovieRating.collection.updateOne(
-		{ fs_id: fsIdStr },
-		{ $inc: { [ratingStr]: 1, total_votes: 1 } },
 		{ upsert: true }
 	);
 
@@ -755,63 +488,6 @@ const getFSMovieRating = (req, res) => {
 		});
 };
 
-const getUserDetails = (req, res) => {
-	const obj = JSON.parse(JSON.stringify(req.body));
-	console.log(JSON.stringify(req.body));
-	const mobileXX = obj.mobile;
-	const nameXX = obj.name;
-	const countryCode = obj.country_code;
-	User.findOne({ mobile: obj.mobile })
-		.then((result) => {
-			if (result) {
-				res.send(JSON.stringify(result));
-				res.end();
-				return;
-			} else {
-				const userObj = {
-					id: nanoid(),
-					expo_token: '',
-					name: null,
-					country: obj.country,
-					country_code: countryCode,
-					mobile: obj.mobile,
-					create_date_time: new Date(Date.now()),
-					update_date_time: new Date(Date.now())
-				};
-				User.collection
-					.insertOne(userObj)
-					.then((result) => {
-						const temp = { [mobileXX]: nameXX };
-						AllUsers.collection
-							.updateOne({ id: 'All_Users' }, { $set: { users: temp } }, { upsert: true })
-							.then((result) => {
-								res.send(JSON.stringify(userObj));
-								res.end();
-								return;
-							})
-							.catch((err) => {
-								console.error(`getUserDetails# Failed to insert documents in all_users: ${err}`);
-								res.send(JSON.stringify(null));
-								res.end();
-								return;
-							});
-					})
-					.catch((err) => {
-						console.error(`getUserDetails# Failed to insert documents : ${err}`);
-						res.send(JSON.stringify(null));
-						res.end();
-						return;
-					});
-			}
-		})
-		.catch((err) => {
-			console.error(`getUserDetails# Failed to fetch documents : ${err}`);
-			res.send(JSON.stringify(null));
-			res.end();
-			return;
-		});
-};
-
 const getTopMoviesOfTheYear = (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
 	console.log(JSON.stringify(req.body));
@@ -827,37 +503,6 @@ const getTopMoviesOfTheYear = (req, res) => {
 		})
 		.catch((err) => {
 			console.error(`getTopMoviesOfTheYear# Failed to fetch documents : ${err}`);
-			res.send(JSON.stringify([]));
-			res.end();
-			return;
-		});
-};
-
-const getHomeScreenDataX = (req, res) => {
-	const restaurantObj = JSON.parse(JSON.stringify(req.body));
-	console.log(JSON.stringify(req.body));
-	// media_type: 'all'|'movie'|'tv'|'person'
-	// time_window: 'day'|'week'
-	// const trendingToday = TrendingToday.find({}).exec();
-	// const trendingThisWeek = TrendingThisWeek.find({}).exec();
-
-	// START: THESE TWO ARE FOR TESTING REMOVE BEFORE PRODUCTION
-	const trendingToday = Movie.find({}).exec();
-	const trendingThisWeek = Movie.find({}).exec();
-	//END
-	Promise.all([ trendingToday, trendingThisWeek ])
-		.then(([ res1, res2 ]) => {
-			// console.log('Results trendingCurrentWeek: ', res2.results);
-			const homeScreenData = {
-				trending_today: res1,
-				trending_current_week: res2
-			};
-			res.send(JSON.stringify(homeScreenData));
-			res.end();
-			return;
-		})
-		.catch((err) => {
-			console.error(`getHomeScreenData# Failed to fetch documents : ${err}`);
 			res.send(JSON.stringify([]));
 			res.end();
 			return;
