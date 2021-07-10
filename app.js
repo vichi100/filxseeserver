@@ -156,18 +156,29 @@ const getUtilData = (req, res) => {
 		});
 };
 
-const getMovieByCategory = (req, res) => {
+const getMovieByCategory = async (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
 	console.log(JSON.parse(JSON.stringify(req.body)));
 	const category = obj.category;
 	const document = obj.document;
+	const mobile = obj.mobile;
 	var categorySchema = new Schema({}, { strict: false });
 	// var Category = mongoose.model(document);
 	// if (Category) {
 	// 	Category = mongoose.model(document, categorySchema);
 	// }
+
+	const UserActionData = await UserAction.findOne({mobile: mobile});
+	console.log(JSON.stringify(UserActionData));
+	console.log("vichi1")
+	var seenMovieArray = []
+	if(UserActionData){
+		seenMovieArray = Object.keys(UserActionData.rating)
+	}
+	console.log(JSON.stringify(seenMovieArray));
+
 	var Category = mongoose.model(document, categorySchema);
-	Category.find({})
+	Category.find({fs_id:{$nin:seenMovieArray}})
 		.sort({
 			release_date: -1,
 			imdb_rating: -1
@@ -183,7 +194,7 @@ const getMovieByCategory = (req, res) => {
 			console.log(err.code);
 			if (err instanceof OverwriteModelError) {
 				console.log('here');
-				Category.find({})
+				Category.find({fs_id:{$nin: seenMovieArray}})
 					.then((result) => {
 						console.log(result);
 						res.send(JSON.stringify(result));
@@ -205,23 +216,32 @@ const getMovieByCategory = (req, res) => {
 		});
 };
 
-const getHomeScreenData = (req, res) => {
-	const restaurantObj = JSON.parse(JSON.stringify(req.body));
+const getHomeScreenData = async (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
 	console.log(JSON.stringify(req.body));
+	const mobile = obj.mobile;
 	// media_type: 'all'|'movie'|'tv'|'person'
 	// time_window: 'day'|'week'
 	// const trendingToday = TrendingToday.find({}).exec();
 	// const trendingThisWeek = TrendingThisWeek.find({}).exec();
 
 	// START: THESE TWO ARE FOR TESTING REMOVE BEFORE PRODUCTION
-	const friendList = HomeData.find({}).limit(8).exec();
-	const trendingToday = HomeData.find({}).limit(8).exec();
+	const UserActionData = await UserAction.findOne({mobile: mobile});
+	console.log(JSON.stringify(UserActionData));
+	console.log("vichi1")
+	var seenMovieArray = []
+	if(UserActionData){
+		seenMovieArray = Object.keys(UserActionData.rating)
+	}
+	console.log(JSON.stringify(seenMovieArray));
+	const friendList = HomeData.find({fs_id:{$nin:seenMovieArray}}).limit(8).exec();
+	const trendingToday = HomeData.find({fs_id:{$nin:seenMovieArray}}).limit(8).exec();
 
 	// var romComSchema = new Schema({}, { strict: false });
 	// var RomCom = mongoose.model('romcoms', romComSchema);
 	// const romcomData = RomCom.find({}).exec();
 
-	const masterCut = Movie.find({}).limit(8).exec();
+	// const masterCut = Movie.find({}).limit(8).exec();
 	//END
 	Promise.all([ friendList, trendingToday ])
 		.then(([ res1, res2 ]) => {
@@ -488,12 +508,22 @@ const getFSMovieRating = (req, res) => {
 		});
 };
 
-const getTopMoviesOfTheYear = (req, res) => {
+const getTopMoviesOfTheYear = async(req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
 	console.log(JSON.stringify(req.body));
 	const releaseDate = obj.releaseDate;
+	const mobile = obj.mobile
 	// Movie.find({ release_date: releaseDate }, { imdb_rating: { $gt: 30 } })
-	Movie.find({ release_date: releaseDate, imdb_rating: { $gt: 80 } })
+	const UserActionData = await UserAction.findOne({mobile: mobile});
+	console.log(JSON.stringify(UserActionData));
+	console.log("vichi1")
+	var seenMovieArray = []
+	if(UserActionData){
+		seenMovieArray = Object.keys(UserActionData.rating)
+	}
+	console.log(JSON.stringify(seenMovieArray));
+
+	Movie.find({ release_date: releaseDate, imdb_rating: { $gt: 80 }, fs_id:{$nin:seenMovieArray} })
 		.sort({ imdb_rating: -1 })
 		.then((result) => {
 			// console.log('result   : ' + result);
