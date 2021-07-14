@@ -12,7 +12,7 @@ const category = [
 		title: 'romcom',
 		query: {
 			'genres.name': { $all: [ 'Romance', 'Comedy' ] },
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -22,7 +22,7 @@ const category = [
 		query: {
 			'genres.name': { $in: [ 'Comedy' ] },
 			media_type: 'series',
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -42,7 +42,7 @@ const category = [
 				{
 					'genres.name': { $all: [ 'Comedy', 'Drama' ] },
 
-					release_date: { $gte: 2000 },
+					release_date: { $gte: 1990 },
 					imdb_rating: { $gte: 6.5 }
 				}
 			]
@@ -56,7 +56,7 @@ const category = [
 				{ 'genres.name': { $all: [ 'Sport', 'History' ] } },
 				{ 'genres.name': { $all: [ 'Sport', 'Biography' ] } }
 			],
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -64,7 +64,7 @@ const category = [
 		title: 'animation',
 		query: {
 			'genres.name': 'Animation',
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -73,7 +73,7 @@ const category = [
 		query: {
 			$or: [ { overview: /murder/ }, { overview: /mystery/ }, { overview: /killed/ } ],
 			'genres.name': { $in: [ 'Crime' ] },
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -82,7 +82,7 @@ const category = [
 		query: {
 			$or: [ { overview: /serial/ }, { overview: /killer/ }, { overview: /murders/ }, { overview: /killings/ } ],
 			'genres.name': { $in: [ 'Crime' ] },
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -97,7 +97,7 @@ const category = [
 				{ overview: /organized crime/ }
 			],
 			'genres.name': { $in: [ 'Crime' ] },
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -106,7 +106,7 @@ const category = [
 		title: 'horror',
 		query: {
 			'genres.name': 'Horror',
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -114,7 +114,7 @@ const category = [
 		title: 'zombi',
 		query: {
 			overview: /zombi/,
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -133,7 +133,7 @@ const category = [
 				{ overview: /agent/ }
 			],
 			'genres.name': { $in: [ 'Action' ] },
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -141,7 +141,7 @@ const category = [
 		title: 'war',
 		query: {
 			'genres.name': 'War',
-			release_date: { $gte: 2000 },
+			release_date: { $gte: 1990 },
 			imdb_rating: { $gte: 6.5 }
 		}
 	},
@@ -165,7 +165,7 @@ const category = [
 						{ overview: /asteroid/ }
 					],
 					'genres.name': { $in: [ 'Adventure' ] },
-					release_date: { $gte: 2000 },
+					release_date: { $gte: 1990 },
 					imdb_rating: { $gte: 6.5 }
 				}
 			]
@@ -192,7 +192,7 @@ const category = [
 						{ overview: /asteroid/ }
 					],
 					'genres.name': { $in: [ 'Science Fiction' ] },
-					release_date: { $gte: 2000 },
+					release_date: { $gte: 1990 },
 					imdb_rating: { $gte: 6.5 }
 				}
 			]
@@ -274,14 +274,14 @@ mongoose
 
 category.map((item) => {
 	const query = item.query;
-
+	// console.log("category: ", item.title)
 	Movie.find(query)
 		.sort({
 			imdb_rating: -1
 		})
 		.limit(100)
 		.then((result) => {
-			console.log(JSON.stringify(result.length));
+			console.log(item.title, JSON.stringify(result.length));
 			// var Test = mongoose.model(item.title, new Schema(), item.title);
 
 			var thingSchema = new Schema({}, { strict: false });

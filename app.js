@@ -79,6 +79,13 @@ mongoose
 
 // end: Connect to DB
 
+
+
+app.post('/getSeenMovieData', function(req, res) {
+	console.log('getSeenMovieData');
+	getSeenMovieData(req, res);
+});
+
 app.post('/getTrendingMovie', function(req, res) {
 	console.log('getTrendingMovie');
 	getTrendingMovie(req, res);
@@ -169,17 +176,18 @@ const getMovieByCategory = async (req, res) => {
 	// 	Category = mongoose.model(document, categorySchema);
 	// }
 
-	const UserActionData = await UserAction.findOne({mobile: mobile});
-	console.log(JSON.stringify(UserActionData));
-	console.log("vichi1")
-	var seenMovieArray = []
-	if(UserActionData){
-		seenMovieArray = Object.keys(UserActionData.rating)
-	}
-	console.log(JSON.stringify(seenMovieArray));
+	// const UserActionData = await UserAction.findOne({mobile: mobile});
+	// console.log(JSON.stringify(UserActionData));
+	// console.log("document: ", document)
+	// var seenMovieArray = []
+	// if(UserActionData){
+	// 	seenMovieArray = Object.keys(UserActionData.rating)
+	// }
+	// console.log(JSON.stringify(seenMovieArray));
 
 	var Category = mongoose.model(document, categorySchema);
-	Category.find({fs_id:{$nin:seenMovieArray}})
+	// Category.find({fs_id:{$nin:seenMovieArray}})
+	Category.find({})
 		.sort({
 			release_date: -1,
 			imdb_rating: -1
@@ -195,7 +203,8 @@ const getMovieByCategory = async (req, res) => {
 			console.log(err.code);
 			if (err instanceof OverwriteModelError) {
 				console.log('here');
-				Category.find({fs_id:{$nin: seenMovieArray}})
+				// Category.find({fs_id:{$nin: seenMovieArray}})
+				Category.find({})
 					.then((result) => {
 						console.log(result);
 						res.send(JSON.stringify(result));
@@ -235,8 +244,11 @@ const getHomeScreenData = async (req, res) => {
 		seenMovieArray = Object.keys(UserActionData.rating)
 	}
 	console.log(JSON.stringify(seenMovieArray));
-	const friendList = HomeData.find({fs_id:{$nin:seenMovieArray}}).limit(8).exec();
-	const trendingToday = HomeData.find({fs_id:{$nin:seenMovieArray}}).limit(8).exec();
+	// const friendList = HomeData.find({fs_id:{$nin:seenMovieArray}}).limit(8).exec();
+	// const trendingToday = HomeData.find({fs_id:{$nin:seenMovieArray}}).limit(8).exec();
+
+	const friendList = HomeData.find({}).limit(8).exec();
+	const trendingToday = HomeData.find({}).limit(8).exec();
 
 	// var romComSchema = new Schema({}, { strict: false });
 	// var RomCom = mongoose.model('romcoms', romComSchema);
@@ -477,6 +489,31 @@ const addRatingAndSeenFlag = (req, res) => {
 		});
 };
 
+const getSeenMovieData = (req, res) =>{
+	const obj = JSON.parse(JSON.stringify(req.body));
+	const mobile = obj.mobile;
+	UserAction.findOne({mobile: mobile}).then(result =>{
+		console.log("SeenMovie: ",JSON.stringify(result.rating));
+		res.send(JSON.stringify(result.rating));
+		res.end();
+		return;
+	}).catch((err) => {
+		console.error(`getSeenMovieData# Failed to fetch documents : ${err}`);
+		res.send(JSON.stringify([]));
+		res.end();
+		return;
+	});
+
+	// const UserActionData = await UserAction.findOne({mobile: mobile});
+	// console.log(JSON.stringify(UserActionData));
+	// console.log("vichi1")
+	// var seenMovieArray = []
+	// if(UserActionData){
+	// 	seenMovieArray = Object.keys(UserActionData.rating)
+	// }
+	// console.log(JSON.stringify(seenMovieArray));
+}
+
 const getTrendingMovie = (req, res) => {
 	const obj = JSON.parse(JSON.stringify(req.body));
 	TMDBTrending.find()
@@ -515,16 +552,17 @@ const getTopMoviesOfTheYear = async(req, res) => {
 	const releaseDate = obj.releaseDate;
 	const mobile = obj.mobile
 	// Movie.find({ release_date: releaseDate }, { imdb_rating: { $gt: 30 } })
-	const UserActionData = await UserAction.findOne({mobile: mobile});
-	console.log(JSON.stringify(UserActionData));
-	console.log("vichi1")
-	var seenMovieArray = []
-	if(UserActionData){
-		seenMovieArray = Object.keys(UserActionData.rating)
-	}
-	console.log(JSON.stringify(seenMovieArray));
+	// const UserActionData = await UserAction.findOne({mobile: mobile});
+	// console.log(JSON.stringify(UserActionData));
+	// console.log("vichi1")
+	// var seenMovieArray = []
+	// if(UserActionData){
+	// 	seenMovieArray = Object.keys(UserActionData.rating)
+	// }
+	// console.log(JSON.stringify(seenMovieArray));
 
-	Movie.find({ release_date: releaseDate, imdb_rating: { $gt: 80 }, fs_id:{$nin:seenMovieArray} })
+	// Movie.find({ release_date: releaseDate, imdb_rating: { $gt: 80 }, fs_id:{$nin:seenMovieArray} })
+	Movie.find({ release_date: releaseDate, imdb_rating: { $gt: 80 } })
 		.sort({ imdb_rating: -1 })
 		.then((result) => {
 			// console.log('result   : ' + result);

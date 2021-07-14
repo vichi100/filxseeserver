@@ -17,7 +17,8 @@ const OTTProviderDict = {
 };
 
 mongoose
-	.connect('mongodb+srv://vichi:vichi123@cluster0.emt5x.mongodb.net/flicksick_india?retryWrites=true&w=majority')
+	// .connect('mongodb+srv://vichi:vichi123@cluster0.emt5x.mongodb.net/flicksick_india?retryWrites=true&w=majority')
+	.connect('mongodb://flicksick:flicksick123@209.145.57.26:27017/flicksick_india')
 	.then(() => {
 		console.log('MongoDB connected...server listening at 3000');
 	})
@@ -25,7 +26,7 @@ mongoose
 
 Util.collection
 	.updateOne(
-		{ _id: ObjectId('60b25af0ce6e65463c414d66') },
+		{ _id: ObjectId('60ef22b7a32b3811566d5f59') },// THIS OBJECTID NEED TO BE ACCOUDINGLY UTILL COLLECTION'S _ID
 		{
 			$set: { ott_provider: OTTProviderDict }
 		}

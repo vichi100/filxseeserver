@@ -36,9 +36,76 @@ const genresX = {
 	'10767': 'Talk Show'
 };
 
+
+// IF WE ADD ANY NEW CATEGORY THEN THAT CATEGORY SHOULD BE ADDED HERE TOO category.js
+const categoryMapping = [
+	{
+		category: 'RomCom',
+		document: 'romcoms'
+	},
+	{
+		category: 'SitCom',
+		document: 'sitcoms'
+	},
+	{
+		category: 'Biography',
+		document: 'biographies'
+	},
+	{
+		category: 'Happy Ending',
+		document: 'happy_endings'
+	},
+	{
+		category: 'Sport',
+		document: 'sports'
+	},
+
+	{
+		category: 'Animation',
+		document: 'animations'
+	},
+	{
+		category: 'Murder Mystery',
+		document: 'murder_mysteries'
+	},
+	{
+		category: 'Serial Killer',
+		document: 'serial_killers'
+	},
+	{
+		category: 'Mafia',
+		document: 'mafias'
+	},
+	{
+		category: 'Horror',
+		document: 'horrors'
+	},
+	{
+		category: 'Zombi',
+		document: 'zombis'
+	},
+	{
+		category: 'Spy',
+		document: 'spies'
+	},
+	{
+		category: 'War',
+		document: 'wars'
+	},
+	{
+		category: 'Space & Aliens',
+		document: 'space_aliens'
+	},
+	{
+		category: 'SciFi',
+		document: 'scifis'
+	}
+];
+
 // mongodb+srv://vichi:<password>@cluster0.emt5x.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
 mongoose
-	.connect('mongodb+srv://vichi:vichi123@cluster0.emt5x.mongodb.net/flicksick_india?retryWrites=true&w=majority')
+	// .connect('mongodb+srv://vichi:vichi123@cluster0.emt5x.mongodb.net/flicksick_india?retryWrites=true&w=majority')
+	.connect('mongodb://flicksick:flicksick123@209.145.57.26:27017/flicksick_india')
 	.then(() => {
 		console.log('MongoDB connected...server listening at 3000');
 	})
@@ -48,13 +115,18 @@ Movie.distinct('release_date')
 	// .sort({ release_date: -1 })
 	.then((result) => {
 		console.log(result);
+		var nonNullResult = result.filter(function (el) {
+			return el != null;
+		  });
+		  
 		Util.collection
 			.insertOne({
 				genres: genresX,
-				years: result.sort().reverse()
+				years: nonNullResult.sort().reverse(),
+				category: categoryMapping
 			})
 			.then((res) => {
-				console.log(result);
+				console.log(nonNullResult);
 			});
 	})
 	.catch((err) => {
